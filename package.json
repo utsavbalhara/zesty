@@ -6,22 +6,36 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup": "node scripts/setup.js",
+    "db:init": "node scripts/init-db.js",
+    "db:reset": "rm -rf data/db.json && npm run db:init",
+    "db:backup": "cp data/db.json data/backup_$(date +%Y%m%d_%H%M%S).json",
+    "db:view": "cat data/db.json | jq .",
+    "db:test": "node scripts/test-messages.js",
+    "db:migrate": "node scripts/migrate-to-sqlite.js",
+    "db:sqlite-reset": "rm -rf data/twitter.db && npm run db:migrate"
   },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^11.10.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.515.0",
+    "next": "15.3.3",
+    "next-auth": "^4.24.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.3.3"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

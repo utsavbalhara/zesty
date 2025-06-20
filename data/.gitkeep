@@ -1,0 +1,2 @@
+# This file ensures the data directory is created
+# The SQLite database will be stored here
