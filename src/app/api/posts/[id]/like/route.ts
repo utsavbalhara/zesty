@@ -17,21 +17,21 @@ export async function POST(
       )
     }
 
-    const { id: tweetId } = await params
+    const { id: postId } = await params
     const userId = session.user.id
 
-    // Check if tweet exists
-    const tweet = db.tweets.findById(tweetId)
+    // Check if post exists
+    const post = db.posts.findById(postId)
 
-    if (!tweet) {
+    if (!post) {
       return NextResponse.json(
-        { error: 'Tweet not found' },
+        { error: 'Post not found' },
         { status: 404 }
       )
     }
 
     // Toggle like
-    const result = db.likes.toggle(userId, tweetId)
+    const result = db.likes.toggle(userId, postId)
 
     return NextResponse.json(result)
   } catch (error) {

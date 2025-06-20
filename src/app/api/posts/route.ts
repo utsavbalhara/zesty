@@ -8,14 +8,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
 
-    const tweets = db.tweets.getAll(limit)
+    const posts = db.posts.getAll(limit)
 
     return NextResponse.json({
-      tweets,
-      nextCursor: null, // For simplicity, we're not implementing pagination with JSON DB
+      posts,
+      nextCursor: null, // For simplicity, we're not implementing pagination with SQLite DB
     })
   } catch (error) {
-    console.error('Error fetching tweets:', error)
+    console.error('Error fetching posts:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -38,30 +38,30 @@ export async function POST(request: NextRequest) {
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Tweet content is required' },
+        { error: 'Post content is required' },
         { status: 400 }
       )
     }
 
     if (content.length > 280) {
       return NextResponse.json(
-        { error: 'Tweet content is too long' },
+        { error: 'Post content is too long' },
         { status: 400 }
       )
     }
 
-    const tweet = db.tweets.create({
+    const post = db.posts.create({
       content: content.trim(),
       image_url: imageUrl,
       author_id: session.user.id,
     })
 
-    // Get the tweet with author info for response
-    const tweetWithAuthor = db.tweets.getAll(1).find(t => t.id === tweet.id)
+    // Get the post with author info for response
+    const postWithAuthor = db.posts.getAll(1).find(p => p.id === post.id)
 
-    return NextResponse.json(tweetWithAuthor)
+    return NextResponse.json(postWithAuthor)
   } catch (error) {
-    console.error('Error creating tweet:', error)
+    console.error('Error creating post:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

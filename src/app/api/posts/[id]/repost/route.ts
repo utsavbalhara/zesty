@@ -17,25 +17,25 @@ export async function POST(
       )
     }
 
-    const { id: tweetId } = await params
+    const { id: postId } = await params
     const userId = session.user.id
 
-    // Check if tweet exists
-    const tweet = db.tweets.findById(tweetId)
+    // Check if post exists
+    const post = db.posts.findById(postId)
 
-    if (!tweet) {
+    if (!post) {
       return NextResponse.json(
-        { error: 'Tweet not found' },
+        { error: 'Post not found' },
         { status: 404 }
       )
     }
 
-    // Toggle retweet
-    const result = db.retweets.toggle(userId, tweetId)
+    // Toggle repost
+    const result = db.reposts.toggle(userId, postId)
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error toggling retweet:', error)
+    console.error('Error toggling repost:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

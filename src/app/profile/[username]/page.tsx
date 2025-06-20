@@ -6,9 +6,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
-import { TweetCard } from '@/components/tweet/TweetCard'
+import { PostCard } from '@/components/tweet/TweetCard'
 import { formatNumber } from '@/lib/utils'
-import { Calendar, MapPin, Link as LinkIcon, ArrowLeft, MessageCircle } from 'lucide-react'
+import { Calendar, MapPin, Link as LinkIcon, ArrowLeft, MessageCircle, GraduationCap, Building2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface User {
@@ -22,9 +22,13 @@ interface User {
   website: string | null
   joinedAt: string
   verified: boolean
+  degree?: string | null
+  branch?: string | null
+  section?: number | null
+  hostel?: string | null
 }
 
-interface Tweet {
+interface Post {
   id: string
   content: string
   imageUrl?: string | null
@@ -53,12 +57,12 @@ export default function ProfilePage() {
   const username = params.username as string
 
   const [user, setUser] = useState<User | null>(null)
-  const [tweets, setTweets] = useState<Tweet[]>([])
-  const [userStats, setUserStats] = useState({ tweets: 0, followers: 0, following: 0 })
+  const [posts, setPosts] = useState<Post[]>([])
+  const [userStats, setUserStats] = useState({ posts: 0, followers: 0, following: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('tweets')
+  const [activeTab, setActiveTab] = useState('posts')
 
   const fetchUserData = async () => {
     try {
@@ -75,11 +79,11 @@ export default function ProfilePage() {
       setUserStats(userData.stats)
       setIsFollowing(userData.isFollowing)
 
-      // Fetch user's tweets
-      const tweetsResponse = await fetch(`/api/users/${userData.user.id}/tweets`)
-      if (tweetsResponse.ok) {
-        const tweetsData = await tweetsResponse.json()
-        setTweets(tweetsData.tweets)
+      // Fetch user's posts
+      const postsResponse = await fetch(`/api/users/${userData.user.id}/posts`)
+      if (postsResponse.ok) {
+        const postsData = await postsResponse.json()
+        setPosts(postsData.posts)
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
@@ -166,7 +170,7 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-xl font-bold">{user.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {formatNumber(userStats.tweets)} Tweets
+                {formatNumber(userStats.posts)} Posts
               </p>
             </div>
           </div>
@@ -220,6 +224,26 @@ export default function ProfilePage() {
               <p className="text-foreground">{user.bio}</p>
             )}
 
+            {/* Academic Information */}
+            {(user.degree || user.branch || user.section || user.hostel) && (
+              <div className="flex flex-wrap gap-4 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                {user.degree && (
+                  <div className="flex items-center space-x-1">
+                    <GraduationCap className="h-4 w-4" />
+                    <span>{user.degree}</span>
+                    {user.branch && <span>in {user.branch}</span>}
+                    {user.section && <span>- Section {user.section}</span>}
+                  </div>
+                )}
+                {user.hostel && (
+                  <div className="flex items-center space-x-1">
+                    <Building2 className="h-4 w-4" />
+                    <span>{user.hostel} Hostel</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               {user.location && (
                 <div className="flex items-center space-x-1">
@@ -257,7 +281,7 @@ export default function ProfilePage() {
         {/* Tabs */}
         <div className="border-b border-border">
           <div className="flex">
-            {['tweets', 'replies', 'media', 'likes'].map((tab) => (
+            {['posts', 'replies', 'media', 'likes'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -275,14 +299,14 @@ export default function ProfilePage() {
 
         {/* Content */}
         <div>
-          {activeTab === 'tweets' && (
+          {activeTab === 'posts' && (
             <div>
-              {tweets.map((tweet) => (
-                <TweetCard key={tweet.id} tweet={tweet} />
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
               ))}
             </div>
           )}
-          {activeTab !== 'tweets' && (
+          {activeTab !== 'posts' && (
             <div className="text-center p-8 text-muted-foreground">
               <p>No {activeTab} yet.</p>
             </div>

@@ -10,12 +10,12 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
 
-    // Get user's tweets (already includes author info and counts)
-    const tweets = db.tweets.getByUser(userId, limit)
+    // Get user's posts (already includes author info and counts)
+    const posts = db.posts.getByUser(userId, limit)
 
-    return NextResponse.json({ tweets })
+    return NextResponse.json({ posts })
   } catch (error) {
-    console.error('Error fetching user tweets:', error)
+    console.error('Error fetching user posts:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

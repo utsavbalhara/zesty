@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 
-interface Tweet {
+interface Post {
   id: string
   content: string
   imageUrl?: string | null
@@ -26,9 +26,9 @@ interface Tweet {
     image: string | null
     verified: boolean
   }
-  likes: { userId: string }[]
-  retweets: { userId: string; createdAt: string }[]
-  comments: { id: string }[]
+  likes?: { userId: string }[]
+  retweets?: { userId: string; createdAt: string }[]
+  comments?: { id: string }[]
   _count: {
     likes: number
     retweets: number
@@ -36,25 +36,25 @@ interface Tweet {
   }
 }
 
-interface TweetCardProps {
-  tweet: Tweet
+interface PostCardProps {
+  post: Post
   onUpdate?: () => void
 }
 
-export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
+export function PostCard({ post, onUpdate }: PostCardProps) {
   const { data: session } = useSession()
   const [isLiking, setIsLiking] = useState(false)
   const [isRetweeting, setIsRetweeting] = useState(false)
   
-  const isLiked = session?.user?.id ? tweet.likes.some(like => like.userId === session.user.id) : false
-  const isRetweeted = session?.user?.id ? tweet.retweets.some(retweet => retweet.userId === session.user.id) : false
+  const isLiked = session?.user?.id ? post.likes?.some(like => like.userId === session.user.id) : false
+  const isRetweeted = session?.user?.id ? post.retweets?.some(retweet => retweet.userId === session.user.id) : false
 
   const handleLike = async () => {
     if (!session?.user?.id || isLiking) return
 
     setIsLiking(true)
     try {
-      const response = await fetch(`/api/tweets/${tweet.id}/like`, {
+      const response = await fetch(`/api/posts/${post.id}/like`, {
         method: 'POST',
       })
 
@@ -73,7 +73,7 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
 
     setIsRetweeting(true)
     try {
-      const response = await fetch(`/api/tweets/${tweet.id}/retweet`, {
+      const response = await fetch(`/api/posts/${post.id}/repost`, {
         method: 'POST',
       })
 
@@ -90,33 +90,33 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
   return (
     <article className="border-b border-border p-4 hover:bg-muted/50 transition-colors">
       <div className="flex space-x-3">
-        <Link href={`/profile/${tweet.author.username || tweet.author.id}`}>
-          <Avatar src={tweet.author.image} alt={tweet.author.name || ''} />
+        <Link href={`/profile/${post.author.username || post.author.id}`}>
+          <Avatar src={post.author.image} alt={post.author.name || ''} />
         </Link>
         
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-center space-x-2">
             <Link 
-              href={`/profile/${tweet.author.username || tweet.author.id}`}
+              href={`/profile/${post.author.username || post.author.id}`}
               className="font-bold hover:underline"
             >
-              {tweet.author.name}
+              {post.author.name}
             </Link>
-            {tweet.author.verified && (
+            {post.author.verified && (
               <svg className="h-4 w-4 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-2.5-1.668c-.265-.177-.335-.538-.156-.804.178-.266.538-.336.804-.156l1.921 1.281 3.957-5.936c.178-.267.538-.336.804-.16.267.178.336.537.16.804z"/>
               </svg>
             )}
             <span className="text-muted-foreground">
-              @{tweet.author.username || tweet.author.id}
+              @{post.author.username || post.author.id}
             </span>
             <span className="text-muted-foreground">·</span>
             <Link 
-              href={`/tweet/${tweet.id}`}
+              href={`/tweet/${post.id}`}
               className="text-muted-foreground hover:underline"
             >
-              {formatTimeAgo(new Date(tweet.createdAt || new Date().toISOString()))}
+              {formatTimeAgo(new Date(post.createdAt || new Date().toISOString()))}
             </Link>
             <div className="ml-auto">
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -127,12 +127,12 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
 
           {/* Content */}
           <div className="mt-2">
-            <p className="text-foreground whitespace-pre-wrap">{tweet.content}</p>
-            {tweet.imageUrl && (
+            <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+            {post.imageUrl && (
               <div className="mt-3 rounded-2xl overflow-hidden border border-border">
                 <img
-                  src={tweet.imageUrl}
-                  alt="Tweet image"
+                  src={post.imageUrl}
+                  alt="Post image"
                   className="w-full h-auto"
                 />
               </div>
@@ -147,7 +147,7 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
               className="text-muted-foreground hover:text-accent hover:bg-accent/10 -ml-2"
             >
               <MessageCircle className="h-5 w-5 mr-2" />
-              {tweet._count.comments > 0 && formatNumber(tweet._count.comments)}
+              {post._count.comments > 0 && formatNumber(post._count.comments)}
             </Button>
 
             <Button
@@ -160,7 +160,7 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
               }`}
             >
               <Repeat2 className="h-5 w-5 mr-2" />
-              {tweet._count.retweets > 0 && formatNumber(tweet._count.retweets)}
+              {post._count.retweets > 0 && formatNumber(post._count.retweets)}
             </Button>
 
             <Button
@@ -173,7 +173,7 @@ export function TweetCard({ tweet, onUpdate }: TweetCardProps) {
               }`}
             >
               <Heart className={`h-5 w-5 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-              {tweet._count.likes > 0 && formatNumber(tweet._count.likes)}
+              {post._count.likes > 0 && formatNumber(post._count.likes)}
             </Button>
 
             <Button

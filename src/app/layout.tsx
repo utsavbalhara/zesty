@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Twitter Clone",
-  description: "A full-featured Twitter clone built with Next.js",
+  title: "Zestyy",
+  description: "A full-featured social media platform built with Next.js",
 };
 
 export default function RootLayout({

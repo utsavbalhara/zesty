@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 import { Image, Smile, Calendar, MapPin } from 'lucide-react'
 
-interface TweetComposerProps {
-  onTweetCreated?: () => void
+interface PostComposerProps {
+  onPostCreated?: () => void
   placeholder?: string
 }
 
-export function TweetComposer({ onTweetCreated, placeholder = "What's happening?" }: TweetComposerProps) {
+export function PostComposer({ onPostCreated, placeholder = "What's fresh today?" }: PostComposerProps) {
   const { data: session } = useSession()
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -24,7 +24,7 @@ export function TweetComposer({ onTweetCreated, placeholder = "What's happening?
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/tweets', {
+      const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,10 +36,10 @@ export function TweetComposer({ onTweetCreated, placeholder = "What's happening?
 
       if (response.ok) {
         setContent('')
-        onTweetCreated?.()
+        onPostCreated?.()
       }
     } catch (error) {
-      console.error('Error creating tweet:', error)
+      console.error('Error creating post:', error)
     } finally {
       setIsLoading(false)
     }
@@ -49,7 +49,7 @@ export function TweetComposer({ onTweetCreated, placeholder = "What's happening?
 
   const remainingChars = 280 - content.length
   const isOverLimit = remainingChars < 0
-  const canTweet = content.trim().length > 0 && !isOverLimit && !isLoading
+  const canPost = content.trim().length > 0 && !isOverLimit && !isLoading
 
   return (
     <div className="border-b border-border p-4">
@@ -114,10 +114,10 @@ export function TweetComposer({ onTweetCreated, placeholder = "What's happening?
                 
                 <Button
                   type="submit"
-                  disabled={!canTweet}
+                  disabled={!canPost}
                   className="font-bold"
                 >
-                  {isLoading ? 'Tweeting...' : 'Tweet'}
+                  {isLoading ? 'Posting...' : 'Post'}
                 </Button>
               </div>
             </div>
@@ -127,3 +127,6 @@ export function TweetComposer({ onTweetCreated, placeholder = "What's happening?
     </div>
   )
 }
+
+// Export as both names for backward compatibility
+export const TweetComposer = PostComposer

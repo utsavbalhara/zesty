@@ -1,30 +1,30 @@
 import { statements, generateId, getDatabase } from './sqlite'
-import type { User, Tweet, Like, Retweet, Comment, Follow, Message, Notification } from './sqlite'
+import type { User, Post, Comment, Message, Notification, MarketplaceItem } from './sqlite'
 
 // Get notification content text
 const getNotificationContent = (type: Notification['type']): string => {
   switch (type) {
     case 'like':
-      return 'liked your Tweet'
-    case 'retweet':
-      return 'retweeted your Tweet'
+      return 'liked your Post'
+    case 'repost':
+      return 'reposted your Post'
     case 'follow':
       return 'followed you'
     case 'comment':
-      return 'replied to your Tweet'
+      return 'replied to your Post'
     default:
       return 'interacted with your content'
   }
 }
 
 // Create notification helper
-const createNotification = (userId: string, type: Notification['type'], actorId: string, tweetId?: string) => {
+const createNotification = (userId: string, type: Notification['type'], actorId: string, postId?: string) => {
   // Don't create notification for self-actions
   if (userId === actorId) return
   
   try {
     const id = generateId()
-    statements.createNotification.run(id, userId, type, actorId, tweetId || null)
+    statements.createNotification.run(id, userId, type, actorId, postId || null)
   } catch (error) {
     // Ignore duplicate notifications
     console.log('Notification already exists or error:', error)
@@ -48,7 +48,11 @@ export const db = {
         userData.location || null,
         userData.website || null,
         userData.image || null,
-        userData.verified ? 1 : 0
+        userData.verified ? 1 : 0,
+        userData.degree || null,
+        userData.branch || null,
+        userData.section || null,
+        userData.hostel || null
       )
       
       return {
@@ -77,7 +81,7 @@ export const db = {
       }
 
       // Only allow updating certain fields for security
-      const allowedFields = ['name', 'bio', 'location', 'website', 'image']
+      const allowedFields = ['name', 'bio', 'location', 'website', 'image', 'degree', 'branch', 'section', 'hostel']
       const filteredUpdates = Object.keys(updates)
         .filter(key => allowedFields.includes(key))
         .reduce((obj, key) => {
@@ -95,6 +99,10 @@ export const db = {
         filteredUpdates.location ?? user.location ?? null,
         filteredUpdates.website ?? user.website ?? null,
         filteredUpdates.image ?? user.image ?? null,
+        filteredUpdates.degree ?? user.degree ?? null,
+        filteredUpdates.branch ?? user.branch ?? null,
+        filteredUpdates.section ?? user.section ?? null,
+        filteredUpdates.hostel ?? user.hostel ?? null,
         id
       )
 
@@ -105,86 +113,95 @@ export const db = {
     getStats: (userId: string) => {
       const result = statements.getUserStats.get(userId, userId, userId) as any
       return {
-        tweets: result.tweets || 0,
+        posts: result.posts || 0,
         followers: result.followers || 0,
         following: result.following || 0,
       }
+    },
+
+    filterBy: (filters: { degree?: string; branch?: string; section?: number; hostel?: string }) => {
+      return statements.getUsersByFilter.all(
+        filters.degree || null, filters.degree || null,
+        filters.branch || null, filters.branch || null,
+        filters.section || null, filters.section || null,
+        filters.hostel || null, filters.hostel || null
+      ) as User[]
     }
   },
 
-  // Tweet operations
-  tweets: {
-    create: (tweetData: Omit<Tweet, 'id' | 'created_at' | 'updated_at'>) => {
+  // Post operations (renamed from tweets)
+  posts: {
+    create: (postData: Omit<Post, 'id' | 'created_at' | 'updated_at'>) => {
       const id = generateId()
       const now = new Date().toISOString()
       
-      statements.createTweet.run(
+      statements.createPost.run(
         id,
-        tweetData.content,
-        tweetData.image_url || null,
-        tweetData.author_id
+        postData.content,
+        postData.image_url || null,
+        postData.author_id
       )
       
       return {
         id,
-        ...tweetData,
+        ...postData,
         created_at: now,
         updated_at: now,
       }
     },
 
     findById: (id: string) => {
-      return statements.findTweetById.get(id) as Tweet | undefined
+      return statements.findPostById.get(id) as Post | undefined
     },
 
     getAll: (limit = 50) => {
-      const tweets = statements.getTweets.all(limit) as any[]
+      const posts = statements.getPosts.all(limit) as any[]
       
-      return tweets.map(tweet => ({
-        id: tweet.id,
-        content: tweet.content,
-        imageUrl: tweet.image_url,
-        createdAt: tweet.created_at,
+      return posts.map(post => ({
+        id: post.id,
+        content: post.content,
+        imageUrl: post.image_url,
+        createdAt: post.created_at,
         author: {
-          id: tweet.author_id,
-          name: tweet.author_name,
-          username: tweet.author_username,
-          image: tweet.author_image,
-          verified: Boolean(tweet.author_verified),
+          id: post.author_id,
+          name: post.author_name,
+          username: post.author_username,
+          image: post.author_image,
+          verified: Boolean(post.author_verified),
         },
         likes: [], // Will be populated by separate queries if needed
-        retweets: [],
+        reposts: [],
         comments: [],
         _count: {
-          likes: tweet.like_count || 0,
-          retweets: tweet.retweet_count || 0,
-          comments: tweet.comment_count || 0,
+          likes: post.like_count || 0,
+          reposts: post.repost_count || 0,
+          comments: post.comment_count || 0,
         }
       }))
     },
 
     getByUser: (userId: string, limit = 50) => {
-      const tweets = statements.getTweetsByUser.all(userId, limit) as any[]
+      const posts = statements.getPostsByUser.all(userId, limit) as any[]
       
-      return tweets.map(tweet => ({
-        id: tweet.id,
-        content: tweet.content,
-        imageUrl: tweet.image_url,
-        createdAt: tweet.created_at,
+      return posts.map(post => ({
+        id: post.id,
+        content: post.content,
+        imageUrl: post.image_url,
+        createdAt: post.created_at,
         author: {
-          id: tweet.author_id,
-          name: tweet.author_name,
-          username: tweet.author_username,
-          image: tweet.author_image,
-          verified: Boolean(tweet.author_verified),
+          id: post.author_id,
+          name: post.author_name,
+          username: post.author_username,
+          image: post.author_image,
+          verified: Boolean(post.author_verified),
         },
         likes: [],
-        retweets: [],
+        reposts: [],
         comments: [],
         _count: {
-          likes: tweet.like_count || 0,
-          retweets: tweet.retweet_count || 0,
-          comments: tweet.comment_count || 0,
+          likes: post.like_count || 0,
+          reposts: post.repost_count || 0,
+          comments: post.comment_count || 0,
         }
       }))
     },
@@ -192,65 +209,65 @@ export const db = {
     delete: (id: string) => {
       // SQLite will handle cascading deletes via foreign keys
       const db = getDatabase()
-      db.prepare('DELETE FROM tweets WHERE id = ?').run(id)
+      db.prepare('DELETE FROM posts WHERE id = ?').run(id)
     }
   },
 
   // Like operations
   likes: {
-    toggle: (userId: string, tweetId: string) => {
-      const existingLike = statements.findLike.get(userId, tweetId)
+    toggle: (userId: string, postId: string) => {
+      const existingLike = statements.findLike.get(userId, postId)
       
       if (existingLike) {
         // Unlike
-        statements.deleteLike.run(userId, tweetId)
+        statements.deleteLike.run(userId, postId)
         return { liked: false }
       } else {
         // Like
         const id = generateId()
-        statements.createLike.run(id, userId, tweetId)
+        statements.createLike.run(id, userId, postId)
         
-        // Create notification for tweet author
-        const tweet = statements.findTweetById.get(tweetId) as Tweet
-        if (tweet) {
-          createNotification(tweet.author_id, 'like', userId, tweetId)
+        // Create notification for post author
+        const post = statements.findPostById.get(postId) as Post
+        if (post) {
+          createNotification(post.author_id, 'like', userId, postId)
         }
         
         return { liked: true }
       }
     },
 
-    getByTweet: (tweetId: string) => {
-      return statements.getLikesByTweet.all(tweetId) as { user_id: string }[]
+    getByPost: (postId: string) => {
+      return statements.getLikesByPost.all(postId) as { user_id: string }[]
     }
   },
 
-  // Retweet operations
-  retweets: {
-    toggle: (userId: string, tweetId: string) => {
-      const existingRetweet = statements.findRetweet.get(userId, tweetId)
+  // Repost operations (renamed from retweets)
+  reposts: {
+    toggle: (userId: string, postId: string) => {
+      const existingRepost = statements.findRepost.get(userId, postId)
       
-      if (existingRetweet) {
-        // Unretweet
-        statements.deleteRetweet.run(userId, tweetId)
-        return { retweeted: false }
+      if (existingRepost) {
+        // Unrepost
+        statements.deleteRepost.run(userId, postId)
+        return { reposted: false }
       } else {
-        // Retweet
+        // Repost
         const id = generateId()
-        statements.createRetweet.run(id, userId, tweetId)
+        statements.createRepost.run(id, userId, postId)
         
-        // Create notification for tweet author
-        const tweet = statements.findTweetById.get(tweetId) as Tweet
-        if (tweet) {
-          createNotification(tweet.author_id, 'retweet', userId, tweetId)
+        // Create notification for post author
+        const post = statements.findPostById.get(postId) as Post
+        if (post) {
+          createNotification(post.author_id, 'repost', userId, postId)
         }
         
-        return { retweeted: true }
+        return { reposted: true }
       }
     },
 
-    getByTweet: (tweetId: string) => {
-      return statements.getRetweetsByTweet.all(tweetId) as { user_id: string; created_at: string }[]
+    getByPost: (postId: string) => {
+      return statements.getRepostsByPost.all(postId) as { user_id: string; created_at: string }[]
     }
   },
 
@@ -263,13 +280,13 @@ export const db = {
         id,
         commentData.content,
         commentData.user_id,
-        commentData.tweet_id
+        commentData.post_id
       )
       
-      // Create notification for tweet author
-      const tweet = statements.findTweetById.get(commentData.tweet_id) as Tweet
-      if (tweet) {
-        createNotification(tweet.author_id, 'comment', commentData.user_id, commentData.tweet_id)
+      // Create notification for post author
+      const post = statements.findPostById.get(commentData.post_id) as Post
+      if (post) {
+        createNotification(post.author_id, 'comment', commentData.user_id, commentData.post_id)
       }
       
       return {
@@ -279,14 +296,14 @@ export const db = {
       }
     },
 
-    getByTweet: (tweetId: string) => {
-      const comments = statements.getCommentsByTweet.all(tweetId) as any[]
+    getByPost: (postId: string) => {
+      const comments = statements.getCommentsByPost.all(postId) as any[]
       
       return comments.map(comment => ({
         id: comment.id,
         content: comment.content,
         userId: comment.user_id,
-        tweetId: comment.tweet_id,
+        postId: comment.post_id,
         createdAt: comment.created_at,
         user: {
           id: comment.user_id,
@@ -433,7 +450,7 @@ export const db = {
           image: notif.actor_image,
         },
         content: getNotificationContent(notif.type),
-        tweet: notif.tweet_content,
+        post: notif.post_content,
         createdAt: notif.created_at,
         read: Boolean(notif.read),
       }))
@@ -457,11 +474,95 @@ export const db = {
     }
   },
 
+  // Marketplace operations
+  marketplace: {
+    create: (itemData: Omit<MarketplaceItem, 'id' | 'created_at' | 'updated_at'>) => {
+      const id = generateId()
+      
+      statements.createMarketplaceItem.run(
+        id,
+        itemData.title,
+        itemData.description,
+        itemData.price || null,
+        itemData.category,
+        itemData.condition || 'good',
+        itemData.seller_id,
+        itemData.images ? JSON.stringify(itemData.images) : null,
+        itemData.videos ? JSON.stringify(itemData.videos) : null,
+        itemData.status || 'available'
+      )
+      
+      return statements.findMarketplaceItemById.get(id) as MarketplaceItem
+    },
+
+    findById: (id: string) => {
+      const item = statements.findMarketplaceItemById.get(id) as any
+      if (!item) return undefined
+      
+      return {
+        ...item,
+        images: item.images ? JSON.parse(item.images) : [],
+        videos: item.videos ? JSON.parse(item.videos) : []
+      } as MarketplaceItem
+    },
+
+    getAll: (limit = 50) => {
+      const items = statements.getMarketplaceItems.all(limit) as any[]
+      
+      return items.map(item => ({
+        ...item,
+        images: item.images ? JSON.parse(item.images) : [],
+        videos: item.videos ? JSON.parse(item.videos) : [],
+        seller: {
+          id: item.seller_id,
+          name: item.seller_name,
+          username: item.seller_username,
+          image: item.seller_image
+        }
+      }))
+    },
+
+    getByUser: (userId: string, limit = 50) => {
+      const items = statements.getMarketplaceItemsByUser.all(userId, limit) as any[]
+      
+      return items.map(item => ({
+        ...item,
+        images: item.images ? JSON.parse(item.images) : [],
+        videos: item.videos ? JSON.parse(item.videos) : []
+      }))
+    },
+
+    update: (id: string, updates: Partial<MarketplaceItem>) => {
+      const item = statements.findMarketplaceItemById.get(id) as any
+      if (!item) {
+        throw new Error('Item not found')
+      }
+
+      statements.updateMarketplaceItem.run(
+        updates.title || item.title,
+        updates.description || item.description,
+        updates.price !== undefined ? updates.price : item.price,
+        updates.category || item.category,
+        updates.condition || item.condition,
+        updates.images ? JSON.stringify(updates.images) : item.images,
+        updates.videos ? JSON.stringify(updates.videos) : item.videos,
+        updates.status || item.status,
+        id
+      )
+
+      return statements.findMarketplaceItemById.get(id) as MarketplaceItem
+    },
+
+    delete: (id: string) => {
+      statements.deleteMarketplaceItem.run(id)
+    }
+  },
+
   // Utility operations
   reset: () => {
     const db = getDatabase()
     // Clear all tables
-    const tables = ['notifications', 'messages', 'follows', 'comments', 'retweets', 'likes', 'tweets', 'users']
+    const tables = ['marketplace', 'notifications', 'messages', 'follows', 'comments', 'reposts', 'likes', 'posts', 'users']
     tables.forEach(table => {
       db.prepare(`DELETE FROM ${table}`).run()
     })
@@ -472,7 +573,7 @@ export const db = {
     const fs = require('fs')
     const path = require('path')
     const backupPath = path.join(process.cwd(), 'data', `backup_${Date.now()}.db`)
-    const dbPath = path.join(process.cwd(), 'data', 'twitter.db')
+    const dbPath = path.join(process.cwd(), 'data', 'zesty.db')
     
     if (fs.existsSync(dbPath)) {
       fs.copyFileSync(dbPath, backupPath)

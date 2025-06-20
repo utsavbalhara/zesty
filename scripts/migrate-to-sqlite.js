@@ -4,7 +4,7 @@ const Database = require('better-sqlite3')
 
 // Paths
 const JSON_DB_PATH = path.join(process.cwd(), 'data', 'db.json')
-const SQLITE_DB_PATH = path.join(process.cwd(), 'data', 'twitter.db')
+const SQLITE_DB_PATH = path.join(process.cwd(), 'data', 'zesty.db')
 const SCHEMA_PATH = path.join(process.cwd(), 'src', 'lib', 'schema.sql')
 
 function migrateToSQLite() {
@@ -42,20 +42,20 @@ function migrateToSQLite() {
         INSERT INTO users (id, name, username, email, bio, location, website, image, verified, joined_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `),
-      insertTweet: db.prepare(`
-        INSERT INTO tweets (id, content, image_url, author_id, created_at, updated_at)
+      insertPost: db.prepare(`
+        INSERT INTO posts (id, content, image_url, author_id, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
       `),
       insertLike: db.prepare(`
-        INSERT INTO likes (id, user_id, tweet_id, created_at)
+        INSERT INTO likes (id, user_id, post_id, created_at)
         VALUES (?, ?, ?, ?)
       `),
-      insertRetweet: db.prepare(`
-        INSERT INTO retweets (id, user_id, tweet_id, created_at)
+      insertRepost: db.prepare(`
+        INSERT INTO reposts (id, user_id, post_id, created_at)
         VALUES (?, ?, ?, ?)
       `),
       insertComment: db.prepare(`
-        INSERT INTO comments (id, content, user_id, tweet_id, created_at)
+        INSERT INTO comments (id, content, user_id, post_id, created_at)
         VALUES (?, ?, ?, ?, ?)
       `),
       insertFollow: db.prepare(`
@@ -67,7 +67,7 @@ function migrateToSQLite() {
         VALUES (?, ?, ?, ?, ?, ?)
       `),
       insertNotification: db.prepare(`
-        INSERT INTO notifications (id, user_id, type, actor_id, tweet_id, read, created_at)
+        INSERT INTO notifications (id, user_id, type, actor_id, post_id, read, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
     }
@@ -93,11 +93,11 @@ function migrateToSQLite() {
         })
       }
 
-      // Migrate tweets
+      // Migrate posts (formerly tweets)
       if (jsonData.tweets && jsonData.tweets.length > 0) {
-        console.log(`🐦 Migrating ${jsonData.tweets.length} tweets...`)
+        console.log(`📝 Migrating ${jsonData.tweets.length} posts...`)
         jsonData.tweets.forEach(tweet => {
-          statements.insertTweet.run(
+          statements.insertPost.run(
             tweet.id,
             tweet.content,
             tweet.imageUrl || null,
@@ -121,11 +121,11 @@ function migrateToSQLite() {
         })
       }
 
-      // Migrate retweets
+      // Migrate reposts (formerly retweets)
       if (jsonData.retweets && jsonData.retweets.length > 0) {
-        console.log(`🔄 Migrating ${jsonData.retweets.length} retweets...`)
+        console.log(`🔄 Migrating ${jsonData.retweets.length} reposts...`)
         jsonData.retweets.forEach(retweet => {
-          statements.insertRetweet.run(
+          statements.insertRepost.run(
             retweet.id,
             retweet.userId,
             retweet.tweetId,
@@ -211,9 +211,9 @@ function migrateToSQLite() {
     const statsDb = new Database(SQLITE_DB_PATH)
     const stats = {
       users: statsDb.prepare('SELECT COUNT(*) as count FROM users').get().count,
-      tweets: statsDb.prepare('SELECT COUNT(*) as count FROM tweets').get().count,
+      posts: statsDb.prepare('SELECT COUNT(*) as count FROM posts').get().count,
       likes: statsDb.prepare('SELECT COUNT(*) as count FROM likes').get().count,
-      retweets: statsDb.prepare('SELECT COUNT(*) as count FROM retweets').get().count,
+      reposts: statsDb.prepare('SELECT COUNT(*) as count FROM reposts').get().count,
       comments: statsDb.prepare('SELECT COUNT(*) as count FROM comments').get().count,
       follows: statsDb.prepare('SELECT COUNT(*) as count FROM follows').get().count,
       messages: statsDb.prepare('SELECT COUNT(*) as count FROM messages').get().count,

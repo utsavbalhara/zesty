@@ -8,9 +8,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: tweetId } = await params
+    const { id: postId } = await params
 
-    const comments = db.comments.getByTweet(tweetId)
+    const comments = db.comments.getByPost(postId)
 
     return NextResponse.json(comments)
   } catch (error) {
@@ -36,7 +36,7 @@ export async function POST(
       )
     }
 
-    const { id: tweetId } = await params
+    const { id: postId } = await params
     const { content } = await request.json()
 
     if (!content || content.trim().length === 0) {
@@ -46,12 +46,12 @@ export async function POST(
       )
     }
 
-    // Check if tweet exists
-    const tweet = db.tweets.findById(tweetId)
+    // Check if post exists
+    const post = db.posts.findById(postId)
 
-    if (!tweet) {
+    if (!post) {
       return NextResponse.json(
-        { error: 'Tweet not found' },
+        { error: 'Post not found' },
         { status: 404 }
       )
     }
@@ -59,7 +59,7 @@ export async function POST(
     const comment = db.comments.create({
       content: content.trim(),
       user_id: session.user.id,
-      tweet_id: tweetId,
+      post_id: postId,
     })
 
     return NextResponse.json(comment)
