@@ -21,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
+        <div className="glass-bg-shapes"></div>
         <AuthProvider>
           {children}
         </AuthProvider>

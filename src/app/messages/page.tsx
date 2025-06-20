@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -190,23 +190,26 @@ export default function MessagesPage() {
   }
 
   return (
-    <MainLayout>
-      <div className="flex h-screen">
-        {/* Conversations List */}
-        <div className="w-80 border-r border-border">
+    <ResponsiveLayout>
+      <div className="flex h-screen md:h-auto">
+        {/* Conversations List - Hidden on mobile when conversation selected */}
+        <div className={`w-full md:w-80 border-r border-glass-border glass-nav backdrop-blur-2xl ${
+          selectedConversation ? 'hidden md:block' : 'block'
+        }`}>
           {/* Header */}
-          <div className="sticky top-0 bg-background border-b border-border p-4">
+          <div className="sticky top-0 glass backdrop-blur-2xl border-b border-glass-border p-4">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-bold">Messages</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-light to-primary-blue bg-clip-text text-transparent">Messages</h1>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowNewMessageModal(true)}
+                  className="hover:bg-accent/20 hover:text-accent rounded-xl touch-target"
                 >
                   <Plus className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="hover:bg-accent/20 hover:text-accent rounded-xl touch-target">
                   <MoreHorizontal className="h-5 w-5" />
                 </Button>
               </div>
@@ -215,7 +218,7 @@ export default function MessagesPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search Direct Messages"
-                className="pl-10 bg-muted border-0 rounded-full"
+                className="pl-10 glass rounded-full border-glass-border"
               />
             </div>
           </div>
@@ -226,15 +229,15 @@ export default function MessagesPage() {
               <div
                 key={conversation.id}
                 onClick={() => handleConversationSelect(conversation)}
-                className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                  selectedConversation?.id === conversation.id ? 'bg-muted' : ''
+                className={`p-4 border-b border-glass-border cursor-pointer hover:bg-white/10 transition-all duration-300 touch-target ${
+                  selectedConversation?.id === conversation.id ? 'bg-accent/20 border-l-4 border-l-accent' : ''
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <Avatar src={conversation.user.image} alt={conversation.user.name} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium truncate">{conversation.user.name}</p>
+                      <p className="font-medium truncate text-foreground">{conversation.user.name}</p>
                       <p className="text-sm text-muted-foreground">
                         {formatTimeAgo(new Date(conversation.lastMessageTime || new Date().toISOString()))}
                       </p>
@@ -244,7 +247,7 @@ export default function MessagesPage() {
                         {conversation.lastMessage}
                       </p>
                       {conversation.unread && (
-                        <div className="h-2 w-2 bg-accent rounded-full"></div>
+                        <div className="h-2 w-2 bg-accent rounded-full animate-pulse"></div>
                       )}
                     </div>
                   </div>
@@ -254,36 +257,49 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        {/* Chat Area - Full width on mobile when conversation selected */}
+        <div className={`flex-1 flex flex-col h-screen md:h-auto ${
+          selectedConversation ? 'block' : 'hidden md:flex'
+        }`}>
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="border-b border-border p-4">
+              <div className="glass backdrop-blur-2xl border-b border-glass-border p-4">
                 <div className="flex items-center space-x-3">
+                  {/* Back button for mobile */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden hover:bg-accent/20 hover:text-accent rounded-xl touch-target"
+                    onClick={() => setSelectedConversation(null)}
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </Button>
                   <Avatar src={selectedConversation.user.image} alt={selectedConversation.user.name} />
                   <div>
-                    <p className="font-bold">{selectedConversation.user.name}</p>
+                    <p className="font-bold text-foreground">{selectedConversation.user.name}</p>
                     <p className="text-sm text-muted-foreground">@{selectedConversation.user.username}</p>
                   </div>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-primary-black/50 pb-20 md:pb-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.senderId === session?.user?.id ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                      className={`max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-lg ${
                         message.senderId === session?.user?.id
-                          ? 'bg-accent text-white'
-                          : 'bg-muted text-foreground'
+                          ? 'bg-gradient-to-r from-primary-blue to-blue-light text-white'
+                          : 'glass text-foreground border border-glass-border'
                       }`}
                     >
-                      <p>{message.content}</p>
+                      <p className="text-sm md:text-base">{message.content}</p>
                       <p className={`text-xs mt-1 ${
                         message.senderId === session?.user?.id ? 'text-blue-100' : 'text-muted-foreground'
                       }`}>
@@ -294,25 +310,31 @@ export default function MessagesPage() {
                 ))}
               </div>
 
-              {/* Message Input */}
-              <div className="border-t border-border p-4">
+              {/* Message Input - Fixed to bottom on mobile */}
+              <div className="glass backdrop-blur-2xl border-t border-glass-border p-4 md:relative fixed bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto z-40" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
                   <Input
                     placeholder="Start a new message"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    className="flex-1"
+                    className="flex-1 glass rounded-full border-glass-border"
                   />
-                  <Button type="submit" size="icon" disabled={!newMessage.trim() || isSending}>
+                  <Button 
+                    type="submit" 
+                    variant="accent" 
+                    size="icon" 
+                    disabled={!newMessage.trim() || isSending}
+                    className="rounded-full touch-target"
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-center">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Select a message</h2>
+            <div className="flex-1 flex items-center justify-center text-center p-8">
+              <div className="glass-card rounded-2xl p-8 max-w-md">
+                <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-light to-primary-blue bg-clip-text text-transparent">Select a message</h2>
                 <p className="text-muted-foreground">
                   Choose from your existing conversations, start a new one, or just keep swimming.
                 </p>
@@ -323,10 +345,10 @@ export default function MessagesPage() {
 
         {/* New Message Modal */}
         {showNewMessageModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-background rounded-lg w-full max-w-md mx-4">
-              <div className="p-4 border-b border-border">
-                <h2 className="text-xl font-bold">New Message</h2>
+          <div className="fixed inset-0 bg-primary-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="glass-card rounded-2xl w-full max-w-md mx-4 border border-glass-border">
+              <div className="p-4 border-b border-glass-border">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-blue-light to-primary-blue bg-clip-text text-transparent">New Message</h2>
               </div>
               <div className="p-4">
                 <div className="relative">
@@ -335,7 +357,7 @@ export default function MessagesPage() {
                     placeholder="Search users"
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 glass rounded-full border-glass-border"
                   />
                 </div>
                 <div className="mt-4 max-h-96 overflow-y-auto">
@@ -348,7 +370,7 @@ export default function MessagesPage() {
                       <div
                         key={user.id}
                         onClick={() => handleStartConversation(user)}
-                        className="flex items-center space-x-3 p-3 hover:bg-muted/50 cursor-pointer rounded-lg"
+                        className="flex items-center space-x-3 p-3 hover:bg-white/10 cursor-pointer rounded-xl transition-all duration-300 touch-target"
                       >
                         <Avatar src={user.image} alt={user.name} />
                         <div>
@@ -364,7 +386,7 @@ export default function MessagesPage() {
                   )}
                 </div>
               </div>
-              <div className="p-4 border-t border-border flex justify-end">
+              <div className="p-4 border-t border-glass-border flex justify-end">
                 <Button
                   variant="ghost"
                   onClick={() => {
@@ -372,6 +394,7 @@ export default function MessagesPage() {
                     setSearchQuery('')
                     setSearchResults([])
                   }}
+                  className="hover:bg-accent/20 hover:text-accent rounded-xl touch-target"
                 >
                   Cancel
                 </Button>
@@ -380,6 +403,6 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
-    </MainLayout>
+    </ResponsiveLayout>
   )
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { PostCard } from '@/components/tweet/TweetCard'
@@ -133,31 +133,31 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <MainLayout>
+      <ResponsiveLayout>
         <div className="flex justify-center p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
         </div>
-      </MainLayout>
+      </ResponsiveLayout>
     )
   }
 
   if (!user) {
     return (
-      <MainLayout>
+      <ResponsiveLayout>
         <div className="text-center p-8">
           <h1 className="text-2xl font-bold">User not found</h1>
           <p className="text-muted-foreground mt-2">
             The user you're looking for doesn't exist.
           </p>
         </div>
-      </MainLayout>
+      </ResponsiveLayout>
     )
   }
 
   const isOwnProfile = session?.user?.id === user.id
 
   return (
-    <MainLayout>
+    <ResponsiveLayout>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4">
@@ -313,6 +313,6 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </MainLayout>
+    </ResponsiveLayout>
   )
 }

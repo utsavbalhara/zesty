@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout'
 import { Avatar } from '@/components/ui/Avatar'
 import { formatTimeAgo } from '@/lib/utils'
 import { Heart, Repeat2, UserPlus, MessageCircle } from 'lucide-react'
@@ -63,16 +63,16 @@ export default function NotificationsPage() {
 
   if (isLoading) {
     return (
-      <MainLayout>
+      <ResponsiveLayout>
         <div className="flex justify-center p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
         </div>
-      </MainLayout>
+      </ResponsiveLayout>
     )
   }
 
   return (
-    <MainLayout>
+    <ResponsiveLayout>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border p-4">
@@ -117,6 +117,6 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
-    </MainLayout>
+    </ResponsiveLayout>
   )
 }
