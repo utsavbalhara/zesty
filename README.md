@@ -1,6 +1,6 @@
-# Twitter Clone
+# Zesty
 
-A full-featured Twitter clone built with Next.js, TypeScript, Tailwind CSS, and Prisma. This application replicates all the core features of Twitter with a modern, responsive design.
+A full-featured Social Media Platform built with Next.js, TypeScript, Tailwind CSS, and Prisma. This application is inspired from twitter. 
 
 ## Features
 
@@ -10,23 +10,21 @@ A full-featured Twitter clone built with Next.js, TypeScript, Tailwind CSS, and 
 - Protected routes and user sessions
 
 ### 🐦 Core Twitter Features
-- **Tweet Creation**: Compose tweets with character count and validation
-- **Tweet Feed**: Real-time timeline with all tweets
-- **Interactions**: Like, retweet, and comment on tweets
+- **Post Creation**: Compose posts with character count and validation
+- **Post Feed**: Real-time timeline with all posts
+- **Interactions**: Like, repost, and comment on posts
 - **User Profiles**: Complete user profiles with bio, location, website
 - **Follow System**: Follow/unfollow users
-- **Responsive Design**: Exact Twitter UI replication
 
 ### 📱 Pages & Navigation
 - **Home Feed**: Personalized timeline
 - **Explore**: Trending topics and discovery
 - **Notifications**: Activity notifications
 - **Messages**: Direct messaging interface
-- **Profile Pages**: User profiles with tweets and stats
+- **Profile Pages**: User profiles with posts and stats
 - **Authentication Pages**: Sign in and sign up
 
 ### 🎨 UI/UX
-- Exact Twitter design replication
 - Dark/light mode support
 - Responsive layout for all devices
 - Smooth animations and transitions
@@ -36,7 +34,7 @@ A full-featured Twitter clone built with Next.js, TypeScript, Tailwind CSS, and 
 
 - **Frontend**: React 19, Next.js 15, TypeScript
 - **Styling**: Tailwind CSS 4
-- **Database**: JSON file (simple, on-device storage)
+- **Database**: SQLite
 - **Authentication**: NextAuth.js
 - **Icons**: Lucide React
 - **Date Handling**: date-fns
@@ -125,16 +123,16 @@ src/
 
 ## Features in Detail
 
-### Tweet System
+### Post System
 - Character limit (280 characters)
 - Real-time character counter
-- Tweet validation
+- Post validation
 - Image support (placeholder)
 - Optimistic updates
 
 ### User Interactions
 - Like/unlike with heart animation
-- Retweet with count display
+- Repost with count display
 - Comment system
 - Follow/unfollow functionality
 - User profile viewing
@@ -153,27 +151,8 @@ src/
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
-
-This project is for educational purposes. Please respect Twitter's intellectual property and terms of service.
-
-## Deployment
-
-### Vercel (Recommended)
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy automatically
-
-### Other Platforms
-- Update `DATABASE_URL` for production database
-- Set `NEXTAUTH_URL` to your domain
-- Configure authentication providers if using OAuth
-
 ## Support
 
 If you encounter any issues or have questions, please open an issue in the repository.
 
 ---
-
-Built with ❤️ using Next.js and TypeScript
