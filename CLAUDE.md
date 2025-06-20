@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Database Commands
 - `npm run db:migrate` - Migrate from JSON to SQLite database
 - `npm run db:sqlite-reset` - Reset SQLite database completely
+- `npm run db:zesty-reset` - Reset Zesty database (current primary database)
 - `npm run db:init` - Initialize JSON database (legacy)
 - `npm run db:backup` - Backup current database
 - `npm run db:view` - View JSON database contents (requires jq)
@@ -37,7 +38,12 @@ The project uses **SQLite** as the primary database with `better-sqlite3`. The d
 - **Automatic Notifications**: System creates notifications for user interactions
 
 ### Database Schema
-Core entities: `users`, `tweets`, `likes`, `retweets`, `comments`, `follows`, `messages`, `notifications`
+Core entities: `users`, `posts`, `likes`, `reposts`, `comments`, `follows`, `messages`, `notifications`, `marketplace`
+
+**Note**: The codebase is transitioning from Twitter-like terminology to a college-focused platform called "Zesty":
+- Database uses `posts`/`reposts` but components still use `Tweet*` naming
+- Marketplace functionality added for college community e-commerce
+- User schema includes college-specific fields: `degree`, `branch`, `section`, `hostel`
 
 ## API Routes Architecture
 
@@ -57,8 +63,10 @@ if (!session?.user?.id) {
 - **Database integration**: Direct use of `db` object from `@/lib/db`
 
 ### Key API Patterns
-- **Toggle operations**: Likes, retweets, and follows use toggle endpoints
-- **Nested resources**: `/api/tweets/[id]/like`, `/api/users/[id]/follow`
+- **Toggle operations**: Likes, reposts, and follows use toggle endpoints
+- **Nested resources**: `/api/posts/[id]/like`, `/api/users/[id]/follow`
+- **Marketplace endpoints**: `/api/marketplace/*` for e-commerce functionality
+- **User filtering**: `/api/users/filter/*` for college-specific user searches
 - **Automatic notifications**: Created for user interactions (likes, follows, etc.)
 
 ## Authentication System
@@ -88,9 +96,13 @@ if (!session?.user?.id) {
 - **Error Boundaries**: Loading states and error handling built-in
 
 ### Key Components
-- **TweetCard**: Complete tweet display with interactions
+- **TweetCard**: Complete post display with interactions (naming inconsistency - handles posts despite name)
+- **TweetComposer**: Post creation component (naming inconsistency)
+- **TweetFeed**: Post feed display (naming inconsistency)
 - **AuthProvider**: NextAuth session provider wrapper
 - **UI Components**: Reusable Avatar, Button, Input, Textarea components
+
+**Naming Note**: Components use `Tweet*` naming but actually handle `posts` data from the database.
 
 ## TypeScript Integration
 
@@ -103,9 +115,14 @@ if (!session?.user?.id) {
 
 ### Making Database Changes
 1. Update schema in `src/lib/schema.sql`
-2. Run `npm run db:sqlite-reset` to recreate database
+2. Run `npm run db:zesty-reset` to recreate database (current primary)
 3. Update TypeScript interfaces in `src/lib/sqlite.ts`
 4. Update database operations in `src/lib/db.ts`
+
+### Working with Marketplace Features
+- Marketplace items have categories, conditions, pricing
+- User filtering supports college-specific attributes (degree, branch, section, hostel)
+- All marketplace operations follow the same authentication patterns as social features
 
 ### Adding New Features
 1. Create API route following existing patterns
